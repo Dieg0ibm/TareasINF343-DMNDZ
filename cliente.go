@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -45,22 +46,92 @@ func main() {
 		fmt.Print("\nElige una opción: ")
 
 		var opcion int
-		_, err := fmt.Scan(&opcion) // Cambiar a fmt.Scan
-		if err != nil {
-			fmt.Println("Error: opción inválida.")
-			// Limpiar el buffer de entrada en caso de error
-			var dummy string
-			fmt.Scanln(&dummy)
-			continue
-		}
-
+		fmt.Scan(&opcion)
+		///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		switch opcion {
 		case 1:
-			fmt.Println("Opción 1 seleccionada: Crear un usuario")
-			// Aquí podrías implementar la lógica para crear un usuario
+			var nombre string
+			var departamento string
+			var descripcion string
+
+			fmt.Print("Ingrese el nombre del usuario : ")
+			fmt.Scan(&nombre)
+
+			fmt.Print("Ingrese el departamento al que pertenece: ")
+			fmt.Scan(&departamento)
+
+			fmt.Print("Ingrese una breve descripcion del usuario: ")
+			fmt.Scan(&descripcion)
+
+			nuevoUsuario := Usuario{
+				Nombre:       nombre,
+				Departamento: departamento,
+				Descripcion:  descripcion,
+			}
+
+			jsonData, err := json.Marshal(nuevoUsuario)
+			if err != nil {
+				fmt.Println("Error al convertir el usuario a JSON:", err)
+				return
+			}
+
+			response, err := http.Post("http://127.0.0.1:8080/api/usuario", "application/json", bytes.NewBuffer(jsonData))
+			if err != nil {
+				fmt.Println("Error al hacer la solicitud: ", err)
+				return
+			}
+			defer response.Body.Close()
+
+			body, err := io.ReadAll(response.Body)
+			if err != nil {
+				fmt.Println("Error al leer la respuesta del servidor: ", err)
+				return
+			}
+
+			var createdUsuario Usuario
+			json.Unmarshal(body, &createdUsuario)
+
+			fmt.Printf("Usuario creado exitosamente, su ID de usuario es: %d\n", createdUsuario.ID)
+			///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		case 2:
-			fmt.Println("Opción 2 seleccionada: Crear una sala")
-			// Aquí podrías implementar la lógica para crear una sala
+			var nombre_sala string
+			var ubicacion_sala string
+
+			fmt.Print("Ingrese el nombre de la sala : ")
+			fmt.Scan(&nombre_sala)
+
+			fmt.Print("Ingrese la ubicacion de la sala : ")
+			fmt.Scan(&ubicacion_sala)
+
+			nuevaSala := Sala{
+				Nombre:    nombre_sala,
+				Ubicacion: ubicacion_sala,
+			}
+
+			jsonData, err := json.Marshal(nuevaSala)
+			if err != nil {
+				fmt.Println("Error al convertir el usuario a JSON:", err)
+				return
+			}
+
+			response, err := http.Post("http://127.0.0.1:8080/api/sala", "application/json", bytes.NewBuffer(jsonData))
+			if err != nil {
+				fmt.Println("Error al hacer la solicitud: ", err)
+				return
+			}
+			defer response.Body.Close()
+
+			body, err := io.ReadAll(response.Body)
+			if err != nil {
+				fmt.Println("Error al leer la respuesta del servidor: ", err)
+				return
+			}
+
+			var salaCreada Usuario
+			json.Unmarshal(body, &salaCreada)
+
+			fmt.Printf("Sala creada exitosamente, el ID de la sala es: %d\n", salaCreada.ID)
+			///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		case 3:
 			var usuarios []Usuario
 			response, err := http.Get("http://127.0.0.1:8080/api/usuario")
@@ -84,7 +155,7 @@ func main() {
 			for _, usuario := range usuarios {
 				fmt.Printf("%s, ID = %d\n", usuario.Nombre, usuario.ID) // Imprime en el formato deseado
 			}
-
+			///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		case 4:
 			fmt.Println("Opción 4 seleccionada: Consultar salas existentes")
 			response, err := http.Get("http://127.0.0.1:8080/api/sala")
@@ -105,10 +176,11 @@ func main() {
 			for _, sala := range salas {
 				fmt.Printf("%s, ID = %d\n", sala.Nombre, sala.ID)
 			}
-
+			///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		case 5:
 			fmt.Println("Opción 5 seleccionada: Administrar reservas")
-			// Aquí podrías implementar la lógica para administrar reservas
+
+			///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		case 6:
 			fmt.Println("Saliendo del programa...")
 			os.Exit(0) // Finaliza el programa

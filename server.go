@@ -104,6 +104,44 @@ func crearReserva(c *gin.Context) {
 	c.IndentedJSON(http.StatusCreated, newReserva)
 }
 
+///////////////////////////////////////////////////// GET AUXILIARES /////////////////////////////////////////////////////
+
+func getNombreUsuario(c *gin.Context) {
+	id := c.Query("id")
+	consulta := `SELECT nombre FROM usuarios WHERE id = ?`
+	row := db.QueryRow(consulta, id)
+
+	var nombre string
+	if err := row.Scan(&nombre); err != nil {
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{"message": "No se encontró el usuario con la ID ingresada"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"nombre": nombre})
+}
+
+func getNombreSala(c *gin.Context) {
+	id := c.Query("id")
+	consulta := `SELECT nombre FROM salas WHERE id = ?`
+	row := db.QueryRow(consulta, id)
+
+	var nombre string
+	if err := row.Scan(&nombre); err != nil {
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{"message": "No se encontró el usuario con la ID ingresada"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"nombre": nombre})
+}
+
 ///////////////////////////////////////////////////// GET /////////////////////////////////////////////////////
 
 // Obtener todas las salas
@@ -316,6 +354,10 @@ func main() {
 	// Rutas para manejar reservas
 	r.POST("/api/reserva", crearReserva)
 	r.GET("/api/reserva", obtenerReservas)
+
+	//Rutas auxiliares
+	r.GET("/api/user-name", getNombreUsuario)
+	r.GET("/api/sala-name", getNombreSala)
 
 	// Iniciar el servidor en el puerto 8080
 	r.Run("127.0.0.1:8080")
