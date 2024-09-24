@@ -340,6 +340,22 @@ func obtenerReservaPorUsuario(c *gin.Context, idUsuario string) {
 	c.IndentedJSON(http.StatusOK, reservas)
 }
 
+/////////////////////////////////////////// DELETE ///////////////////////////////////////////
+
+func eliminarReserva(c *gin.Context) {
+	idSala := c.Query("id_sala")
+	idUsuario := c.Query("id_usuario")
+	fecha := c.Query("fecha")
+	query := `DELETE FROM reservas WHERE id_sala = ? AND id_usuario = ? AND fecha = ?`
+	_, err := db.Exec(query, idSala, idUsuario, fecha)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Reserva eliminada exitosamente"})
+}
+
 func main() {
 	r := gin.Default()
 
@@ -354,6 +370,7 @@ func main() {
 	// Rutas para manejar reservas
 	r.POST("/api/reserva", crearReserva)
 	r.GET("/api/reserva", obtenerReservas)
+	r.DELETE("/api/reserva", eliminarReserva)
 
 	//Rutas auxiliares
 	r.GET("/api/user-name", getNombreUsuario)
