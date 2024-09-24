@@ -45,9 +45,12 @@ func main() {
 		fmt.Print("\nElige una opción: ")
 
 		var opcion int
-		_, err := fmt.Scanf("%d", &opcion)
+		_, err := fmt.Scan(&opcion) // Cambiar a fmt.Scan
 		if err != nil {
 			fmt.Println("Error: opción inválida.")
+			// Limpiar el buffer de entrada en caso de error
+			var dummy string
+			fmt.Scanln(&dummy)
 			continue
 		}
 
@@ -57,11 +60,10 @@ func main() {
 			// Aquí podrías implementar la lógica para crear un usuario
 		case 2:
 			fmt.Println("Opción 2 seleccionada: Crear una sala")
-			//http.Post("http://127.0.0.1:8080/api/sala",)
+			// Aquí podrías implementar la lógica para crear una sala
 		case 3:
-			fmt.Println("Opción 3 seleccionada: Consultar usuarios existentes")
 			var usuarios []Usuario
-			response, err := http.Get("http://127.0.0.1:8080/api/usuarios")
+			response, err := http.Get("http://127.0.0.1:8080/api/usuario")
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -78,12 +80,32 @@ func main() {
 				log.Fatal(err)
 			}
 
-			// Ahora puedes usar la variable `usuarios`
-			fmt.Println(usuarios[0].Nombre)
+			// Imprimir los nombres de todos los usuarios
+			for _, usuario := range usuarios {
+				fmt.Printf("%s, ID = %d\n", usuario.Nombre, usuario.ID) // Imprime en el formato deseado
+			}
 
 		case 4:
 			fmt.Println("Opción 4 seleccionada: Consultar salas existentes")
-			http.Get("http://127.0.0.1:8080/api/salas")
+			response, err := http.Get("http://127.0.0.1:8080/api/sala")
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer response.Body.Close()
+			body, err := io.ReadAll(response.Body)
+			if err != nil {
+				log.Fatal(err)
+			}
+			// Deserializar y mostrar salas (aquí necesitarías definir la estructura Sala)
+			var salas []Sala
+			err = json.Unmarshal(body, &salas)
+			if err != nil {
+				log.Fatal(err)
+			}
+			for _, sala := range salas {
+				fmt.Printf("%s, ID = %d\n", sala.Nombre, sala.ID)
+			}
+
 		case 5:
 			fmt.Println("Opción 5 seleccionada: Administrar reservas")
 			// Aquí podrías implementar la lógica para administrar reservas
