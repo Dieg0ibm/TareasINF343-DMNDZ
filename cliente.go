@@ -33,8 +33,35 @@ type Reserva struct {
 	Descripcion string `json:"descripcion"`
 }
 
-// ////////////////////////////////////////////////////FUNCIONES//////////////////////////////////////////////////////////////
-func crearReserva() {
+///////////////////////////////////////////////////// FUNCIONES AUX //////////////////////////////////////////////////////////////
+
+// Se usa para verificar que la sala no esté ocupada en ese día
+func consultarReservaPorFecha(idSala int, fecha string) string {
+
+	response, err := http.Get(fmt.Sprintf("http://127.0.0.1:8080/api/reserva?id_sala=%d&fecha=%s", idSala, fecha))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer response.Body.Close()
+
+	body, _ := io.ReadAll(response.Body)
+
+	var reservas []Reserva
+
+	json.Unmarshal(body, &reservas)
+
+	if len(reservas) == 0 {
+		mensaje := "La sala se encuentra disponible en la fecha consultada"
+		return mensaje
+	} else {
+		mensaje := "La sala ya tiene una reserva en la fecha consultada"
+		return mensaje
+	}
+}
+
+////////////////////////////////////////////////////// FUNCIONES MENU //////////////////////////////////////////////////////////////
+
+func MenucrearReserva() {
 	scanner := bufio.NewScanner(os.Stdin)
 	var idSala, idUsuario int
 	var fecha, descripcion string
@@ -57,28 +84,28 @@ func crearReserva() {
 		Descripcion: descripcion,
 	}
 
-	jsonData, err := json.Marshal(nuevaReserva)
-	if err != nil {
-		fmt.Println("Error al convertir la reserva a JSON:", err)
-		return
-	}
+	if consultarReservaPorFecha(idSala, fecha) != "La sala ya tiene una reserva en la fecha consultada" {
+		jsonData, err := json.Marshal(nuevaReserva)
+		if err != nil {
+			fmt.Println("Error al convertir la reserva a JSON:", err)
+			return
+		}
 
-	response, err := http.Post("http://127.0.0.1:8080/api/reserva", "application/json", bytes.NewBuffer(jsonData))
-	if err != nil {
-		fmt.Println("Error al hacer la solicitud: ", err)
-		return
-	}
-	defer response.Body.Close()
+		response, err := http.Post("http://127.0.0.1:8080/api/reserva", "application/json", bytes.NewBuffer(jsonData))
+		if err != nil {
+			fmt.Println("Error al hacer la solicitud: ", err)
+			return
+		}
+		defer response.Body.Close()
 
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		fmt.Println("Error al leer la respuesta del servidor: ", err)
-		return
-	}
+		body, _ := io.ReadAll(response.Body)
 
-	var createdReserva Reserva
-	json.Unmarshal(body, &createdReserva)
-	fmt.Println("Reserva creada exitosamente")
+		var createdReserva Reserva
+		json.Unmarshal(body, &createdReserva)
+		fmt.Println("Reserva creada exitosamente")
+	} else {
+		fmt.Println("La sala ya está reservada para esta fecha")
+	}
 }
 
 func verReservasPorUsuario() {
@@ -89,42 +116,36 @@ func verReservasPorUsuario() {
 	response, err := http.Get(fmt.Sprintf("http://127.0.0.1:8080/api/reserva?id_usuario=%d", idUsuario))
 	if err != nil {
 		fmt.Println("Error al hacer la solicitud:", err)
-		return // Salir de la función, pero no del programa
+		return
 	}
 	defer response.Body.Close()
 
-	// Verifica el código de estado HTTP
-	if response.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(response.Body)
-
-		// Estructura para deserializar el mensaje de error
-		var errorResponse struct {
-			Message string `json:"message"`
-		}
-		json.Unmarshal(body, &errorResponse)
-
-		fmt.Println(errorResponse.Message) // Mostrar solo el mensaje de error
-		return                             // Salir de la función, pero no del programa
-	}
-
 	body, err := io.ReadAll(response.Body)
 
-	// Deserializa el cuerpo de la respuesta
 	var reservas []Reserva
-	err = json.Unmarshal(body, &reservas)
-	if err != nil {
-		fmt.Println("Error al deserializar la respuesta:", err)
-		return // Salir de la función, pero no del programa
-	}
+	json.Unmarshal(body, &reservas)
 
-	// Verifica si hay reservas
 	if len(reservas) == 0 {
 		fmt.Println("No se encontraron reservas para este usuario.")
-		return // Salir de la función, pero no del programa
+		return
 	}
 
 	for _, reserva := range reservas {
-		fmt.Printf("Sala ID: %d, Fecha: %s, Descripción: %s\n", reserva.ID_Sala, reserva.Fecha, reserva.Descripcion)
+		responseUsuario, err := http.Get(fmt.Sprintf("http://127.0.0.1:8080/api/getNombreUser?id=%d", reserva.ID_Usuario))
+		if err != nil {
+			log.Fatalf("Error al obtener el nombre del usuario: %v", err)
+		}
+		defer responseUsuario.Body.Close()
+		nombre_usuario, err := io.ReadAll(responseUsuario.Body)
+
+		responseSala, err := http.Get(fmt.Sprintf("http://127.0.0.1:8080/api/getNombreSala?id=%d", reserva.ID_Sala))
+		if err != nil {
+			log.Fatalf("Error al obtener el nombre de la sala: %v", err)
+		}
+		defer responseSala.Body.Close()
+		nombre_sala, err := io.ReadAll(responseSala.Body)
+
+		fmt.Printf("%s tiene reserva en la sala %s en %s", nombre_usuario, nombre_sala, reserva.Fecha)
 	}
 }
 
@@ -136,46 +157,39 @@ func verReservasPorSala() {
 	response, err := http.Get(fmt.Sprintf("http://127.0.0.1:8080/api/reserva?id_sala=%d", idSala))
 	if err != nil {
 		fmt.Println("Error al hacer la solicitud:", err)
-		return // Salir de la función, pero no del programa
+		return
 	}
 	defer response.Body.Close()
 
-	// Verifica el código de estado HTTP
-	if response.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(response.Body)
-
-		// Estructura para deserializar el mensaje de error
-		var errorResponse struct {
-			Message string `json:"message"`
-		}
-		json.Unmarshal(body, &errorResponse)
-
-		fmt.Println(errorResponse.Message) // Mostrar solo el mensaje de error
-		return                             // Salir de la función, pero no del programa
-	}
-
 	body, err := io.ReadAll(response.Body)
 
-	// Deserializa el cuerpo de la respuesta
 	var reservas []Reserva
-	err = json.Unmarshal(body, &reservas)
-	if err != nil {
-		fmt.Println("Error al deserializar la respuesta:", err)
-		return // Salir de la función, pero no del programa
-	}
+	json.Unmarshal(body, &reservas)
 
-	// Verifica si hay reservas
 	if len(reservas) == 0 {
-		fmt.Println("No se encontraron reservas para esta sala.")
-		return // Salir de la función, pero no del programa
+		fmt.Println("No se encontraron reservas para este usuario.")
+		return
 	}
 
 	for _, reserva := range reservas {
-		fmt.Printf("Usuario ID: %d, Fecha: %s, Descripción: %s\n", reserva.ID_Usuario, reserva.Fecha, reserva.Descripcion)
+		responseUsuario, err := http.Get(fmt.Sprintf("http://127.0.0.1:8080/api/getNombreUser?id=%d", reserva.ID_Usuario))
+		if err != nil {
+			log.Fatalf("Error al obtener el nombre del usuario: %v", err)
+		}
+		defer responseUsuario.Body.Close()
+		nombre_usuario, err := io.ReadAll(responseUsuario.Body)
+
+		responseSala, err := http.Get(fmt.Sprintf("http://127.0.0.1:8080/api/getNombreSala?id=%d", reserva.ID_Sala))
+		if err != nil {
+			log.Fatalf("Error al obtener el nombre de la sala: %v", err)
+		}
+		defer responseSala.Body.Close()
+		nombre_sala, err := io.ReadAll(responseSala.Body)
+		fmt.Printf("La sala %s tiene una reserva de %s en %s", nombre_sala, nombre_usuario, reserva.Fecha)
 	}
 }
 
-func consultarReservaPorFecha() {
+func MenuconsultarReservaPorFecha() string {
 	var idSala int
 	var fecha string
 
@@ -195,32 +209,16 @@ func consultarReservaPorFecha() {
 		log.Fatal(err)
 	}
 
-	// Intentamos decodificar la respuesta como un mensaje (cuando no hay reservas)
-	var mensajeRespuesta map[string]string
-	err = json.Unmarshal(body, &mensajeRespuesta)
-	if err == nil {
-		if msg, existe := mensajeRespuesta["message"]; existe {
-			fmt.Println(msg) // Muestra el mensaje cuando no hay reservas
-			return
-		}
-	}
+	var reservas []Reserva
 
-	// Si no era un mensaje, intentamos decodificarlo como una lista de reservas
-	var reservas []struct {
-		IdSala      int    `json:"id_sala"`
-		IdUsuario   int    `json:"id_usuario"`
-		Fecha       string `json:"fecha"`
-		Descripcion string `json:"descripcion"`
-	}
-	err = json.Unmarshal(body, &reservas)
-	if err != nil {
-		log.Fatal("Error al decodificar la respuesta del servidor:", err)
-	}
+	json.Unmarshal(body, &reservas)
 
 	if len(reservas) == 0 {
-		fmt.Println("La sala se encuentra disponible en la fecha consultada")
+		mensaje := "La sala se encuentra disponible en la fecha consultada"
+		return mensaje
 	} else {
-		fmt.Println("La sala tiene una reserva activa en la fecha consultada")
+		mensaje := "La sala ya tiene una reserva en la fecha consultada"
+		return mensaje
 	}
 }
 
@@ -250,7 +248,7 @@ func cancelarReserva() {
 	if response.StatusCode == http.StatusOK {
 		fmt.Println("Reserva cancelada con éxito.")
 	} else {
-		fmt.Println("Error al cancelar la reserva.")
+		fmt.Println("No se encontraron reservas con los datos seleccionados")
 	}
 }
 
@@ -289,7 +287,6 @@ func main() {
 			}
 
 			fmt.Print("Ingrese una breve descripcion del usuario: ")
-			fmt.Scanln(&descripcion)
 			if scanner.Scan() {
 				departamento = scanner.Text()
 			}
@@ -300,24 +297,17 @@ func main() {
 				Descripcion:  descripcion,
 			}
 
-			jsonData, err := json.Marshal(nuevoUsuario)
-			if err != nil {
-				fmt.Println("Error al convertir el usuario a JSON:", err)
-				return
-			}
+			jsonData, _ := json.Marshal(nuevoUsuario)
 
 			response, err := http.Post("http://127.0.0.1:8080/api/usuario", "application/json", bytes.NewBuffer(jsonData))
 			if err != nil {
 				fmt.Println("Error al hacer la solicitud: ", err)
 				return
 			}
+
 			defer response.Body.Close()
 
-			body, err := io.ReadAll(response.Body)
-			if err != nil {
-				fmt.Println("Error al leer la respuesta del servidor: ", err)
-				return
-			}
+			body, _ := io.ReadAll(response.Body)
 
 			var createdUsuario Usuario
 			json.Unmarshal(body, &createdUsuario)
@@ -343,11 +333,7 @@ func main() {
 				Ubicacion: ubicacion_sala,
 			}
 
-			jsonData, err := json.Marshal(nuevaSala)
-			if err != nil {
-				fmt.Println("Error al convertir el usuario a JSON:", err)
-				return
-			}
+			jsonData, _ := json.Marshal(nuevaSala)
 
 			response, err := http.Post("http://127.0.0.1:8080/api/sala", "application/json", bytes.NewBuffer(jsonData))
 			if err != nil {
@@ -356,11 +342,7 @@ func main() {
 			}
 			defer response.Body.Close()
 
-			body, err := io.ReadAll(response.Body)
-			if err != nil {
-				fmt.Println("Error al leer la respuesta del servidor: ", err)
-				return
-			}
+			body, _ := io.ReadAll(response.Body)
 
 			var salaCreada Usuario
 			json.Unmarshal(body, &salaCreada)
@@ -376,19 +358,12 @@ func main() {
 			defer response.Body.Close()
 
 			body, err := io.ReadAll(response.Body)
-			if err != nil {
-				log.Fatal(err)
-			}
 
-			// Deserializar el JSON en la estructura
-			err = json.Unmarshal(body, &usuarios)
-			if err != nil {
-				log.Fatal(err)
-			}
+			// JSON a Usuario
+			json.Unmarshal(body, &usuarios)
 
-			// Imprimir los nombres de todos los usuarios
 			for _, usuario := range usuarios {
-				fmt.Printf("%s, ID = %d\n", usuario.Nombre, usuario.ID) // Imprime en el formato deseado
+				fmt.Printf("%s, ID = %d\n", usuario.Nombre, usuario.ID)
 			}
 			///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		case 4:
@@ -398,15 +373,9 @@ func main() {
 			}
 			defer response.Body.Close()
 			body, err := io.ReadAll(response.Body)
-			if err != nil {
-				log.Fatal(err)
-			}
-			// Deserializar y mostrar salas (aquí necesitarías definir la estructura Sala)
+
 			var salas []Sala
-			err = json.Unmarshal(body, &salas)
-			if err != nil {
-				log.Fatal(err)
-			}
+			json.Unmarshal(body, &salas)
 			for _, sala := range salas {
 				fmt.Printf("%s, ID = %d\n", sala.Nombre, sala.ID)
 			}
@@ -424,27 +393,27 @@ func main() {
 
 			switch subopcion {
 			case 1:
-				crearReserva()
+				MenucrearReserva()
 			case 2:
 				verReservasPorUsuario()
 			case 3:
 				verReservasPorSala()
 			case 4:
-				consultarReservaPorFecha()
+				fmt.Println(MenuconsultarReservaPorFecha())
 			case 5:
 				cancelarReserva()
 			default:
-				fmt.Println("Subopción inválida.")
+				fmt.Println("Opción inválida.")
 			}
 
 			///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		case 6:
-			fmt.Println("Saliendo del programa...")
-			os.Exit(0) // Finaliza el programa
+			fmt.Println("Fin del programa!")
+			os.Exit(0)
 		default:
 			fmt.Println("Opción inválida. Por favor, elige una opción entre 1 y 6.")
 		}
 
-		fmt.Println() // Espacio entre interacciones del menú
+		fmt.Println()
 	}
 }
