@@ -1,7 +1,7 @@
 # TareasINF343-DMNDZ
 Integrantes:
-  - Diego Bahamondes, ROL:
-  - Maximiliano Johnson, ROL:
+  - Diego Bahamondes, ROL: 202173052-4
+  - Maximiliano Johnson, ROL: 202173097-4
   - Claudio Varela, ROL: 202141087-2
 
 Instrucciones de uso:
