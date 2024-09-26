@@ -12,7 +12,7 @@ Instrucciones de uso:
 
 - Ejecutar cada uno de los siguientes comandos en terminales distintas (desde la shell utilice el comando 'screen' para tener acceso a dos terminales)
 
-- go run server.go # Esperamos a que se ejecute e indique la ip en la cual esta escuchando el servidor
+- go run server.go  #Se indica la ip del servidor 127.0.0.1:8080
 
 - go run cliente.go 
 
