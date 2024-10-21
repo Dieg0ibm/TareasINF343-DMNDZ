@@ -1,0 +1,20 @@
+{
+    "vehicles":[
+        {
+            "manufacturer": "Toyota",
+            "model": "Corolla",
+            "year": 2021
+        },
+        {
+            "manufacturer": "Subaru",
+            "model": "Impreza",
+            "year": 2024
+        }
+    ],
+    "customer":{
+        "name": "Pablo",
+        "lastname": "Neuquen",
+        "email": "Pablito_Neuquen@gmail.com",
+        "phone": "+56945468798"
+    }
+}

@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+option go_package = "./orden;orden"; // Asegúrate de que esta ruta sea correcta
+
+message Customer {
+    string name = 1;      // Nombre del cliente
+    string lastname = 2;  // Apellido del cliente
+    string email = 3;     // Correo electrónico del cliente
+    string phone = 4;     // Teléfono del cliente
+}
+
+message Vehicle {
+    string manufacturer = 1; // Fabricante del vehículo
+    string model = 2;        // Modelo del vehículo
+    int32 year = 3;          // Año del vehículo
+}
+
+message Compra {
+    repeated Vehicle vehiculos = 1; // Lista de vehículos comprados
+    Customer cliente = 2;            // Cliente que realiza la compra
+}
+
+message CompraResponse {
+    string message = 1; // Mensaje de respuesta del servidor
+}
+
+service CompraService {
+    rpc RealizarCompra(Compra) returns (CompraResponse); // Método para realizar una compra
+}
