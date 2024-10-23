@@ -5,13 +5,37 @@ import orden_pb2
 from pymongo import MongoClient
 from datetime import datetime
 
+import pika
+import json
+
 class CompraService(orden_pb2_grpc.CompraServiceServicer):
     def __init__(self):
         # Conectar a la base de datos de MongoDB
         self.client = MongoClient('mongodb://localhost:27017/')
-        self.db = self.client['local']  # Cambia 'local' por el nombre de tu base de datos
-        self.inventory = self.db['vehicles']  # Cambia 'vehicles' por el nombre de tu colección de precios
-        self.orders = self.db['orders']  # Cambia 'orders' por el nombre de tu colección de órdenes
+        self.db = self.client['local']
+        self.inventory = self.db['vehicles']  
+        self.orders = self.db['orders']  
+
+         # Conectar a RabbitMQ
+        self.rabbitmq_connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+        self.rabbitmq_channel = self.rabbitmq_connection.channel()
+        # Declarar la cola donde se enviarán las órdenes
+        self.rabbitmq_channel.queue_declare(queue='order_queue', durable=True)
+    
+    def enviar_orden_a_rabbitmq(self, order_data):
+        """
+        Método para enviar la orden a RabbitMQ.
+        """
+        # Enviar la orden a RabbitMQ en formato JSON
+        self.rabbitmq_channel.basic_publish(
+            exchange='',
+            routing_key='order_queue',  # Cola donde se enviarán las órdenes
+            body=json.dumps(order_data),  # Convertir los datos de la orden a JSON
+            properties=pika.BasicProperties(
+                delivery_mode=2,  # Hacer el mensaje persistente
+            )
+        )
+    
 
     def RealizarCompra(self, request, context):
         # Acceder a los datos del mensaje
@@ -56,10 +80,19 @@ class CompraService(orden_pb2_grpc.CompraServiceServicer):
         }
 
         # Insertar la orden en la colección 'orders'
-        self.orders.insert_one(order_data)  # Corregido el acceso a la colección de órdenes
+        insert_result = self.orders.insert_one(order_data)
+
+        # Convertir el ObjectId a string para hacerlo serializable
+        order_data['_id'] = str(insert_result.inserted_id)
+
+        # Enviar la orden a RabbitMQ
+        self.enviar_orden_a_rabbitmq(order_data)
 
         return orden_pb2.CompraResponse(message=mensaje)
 
+
+    
+    
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     orden_pb2_grpc.add_CompraServiceServicer_to_server(CompraService(), server)
