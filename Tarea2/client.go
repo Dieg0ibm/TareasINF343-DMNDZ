@@ -7,13 +7,21 @@ import (
 	"os"
 	"time"
 
-	"Tarea2/orden" // Asegúrate de importar la ruta correcta de tu paquete
+	"Tarea2/orden"
 
 	"google.golang.org/grpc"
 )
 
+// ////////////////////////////////// Estructuras ////////////////////////////////////
+
+type CompraInput struct {
+	Vehiculos []orden.Vehicle `json:"vehicles"`
+	Cliente   orden.Customer  `json:"customer"`
+}
+
 func main() {
-	// Conectar al servidor gRPC
+	//////////////////////////////////// Conectar al servidor gRPC ////////////////////////////////////
+
 	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("No se pudo conectar: %v", err)
@@ -22,38 +30,39 @@ func main() {
 
 	client := orden.NewCompraServiceClient(conn)
 
-	// Leer el archivo JSON
-	file, err := os.Open("a.json")
+	//////////////////////////////////// Leer el archivo JSON ////////////////////////////////////
+
+	// Comprobar paso de argumento
+	if len(os.Args) < 2 {
+		log.Fatalf("%s <archivo.json>", os.Args[0])
+	}
+
+	// Abrir JSON
+	file, err := os.Open(os.Args[1])
 	if err != nil {
 		log.Fatalf("Error al abrir el archivo: %v", err)
 	}
 	defer file.Close()
 
-	// Crear una estructura auxiliar para deserializar el JSON
-	type CompraInput struct {
-		Vehiculos []orden.Vehicle `json:"vehicles"` // Este es el campo en el JSON
-		Cliente   orden.Customer  `json:"customer"` // Este es el campo en el JSON
-	}
-
 	var input CompraInput
 	decoder := json.NewDecoder(file)
 	if err := decoder.Decode(&input); err != nil {
-		log.Fatalf("Error al decodificar JSON: %v", err)
+		log.Fatalf("Error al deserializar JSON: %v", err)
 	}
 
-	// Crear un slice de punteros a vehículos
 	var vehiculos []*orden.Vehicle
 	for _, v := range input.Vehiculos {
-		vehiculos = append(vehiculos, &v) // Añadir puntero a cada vehículo
+		vehiculos = append(vehiculos, &v)
 	}
 
-	// Asignar los datos a la variable compra
+	//////////////////////////////////// Asignar los datos a la compra ////////////////////////////////////
+
 	compra := orden.Compra{
-		Vehiculos: vehiculos,      // Slice de punteros a vehículos
-		Cliente:   &input.Cliente, // Puntero al cliente
+		Vehiculos: vehiculos,
+		Cliente:   &input.Cliente,
 	}
 
-	// Hacer la llamada al servicio gRPC
+	//////////////////////////////////// LLamada gRPC ////////////////////////////////////
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 

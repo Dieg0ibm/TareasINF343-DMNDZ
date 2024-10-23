@@ -2,8 +2,6 @@ module Tarea2
 
 go 1.23.1
 
-require github.com/mattn/go-sqlite3 v1.14.24
-
 require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
