@@ -83,7 +83,6 @@ class CompraService(orden_pb2_grpc.CompraServiceServicer):
         }
 
         agregar_orden = self.orders.insert_one(order_data)
-        print()
         order_data['_id'] = str(agregar_orden.inserted_id)
         self.enviar_orden_a_rabbitmq(order_data)
         return orden_pb2.CompraResponse(message=mensaje_respuesta)
