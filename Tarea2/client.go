@@ -12,32 +12,49 @@ import (
 	"google.golang.org/grpc"
 )
 
-// ////////////////////////////////// Estructuras ////////////////////////////////////
-
+// ///////////////////////// Estructura ///////////////////////////
 type CompraInput struct {
 	Vehiculos []orden.Vehicle `json:"vehicles"`
 	Cliente   orden.Customer  `json:"customer"`
 }
 
-func main() {
-	//////////////////////////////////// Conectar al servidor gRPC ////////////////////////////////////
-
+// ///////////////////////// Conexión gRPC ///////////////////////////
+func conectarServer() (*grpc.ClientConn, orden.CompraServiceClient, error) {
 	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("No se pudo conectar: %v", err)
+		return nil, nil, err
 	}
-	defer conn.Close()
-
 	client := orden.NewCompraServiceClient(conn)
+	return conn, client, nil
+}
 
-	//////////////////////////////////// Leer el archivo JSON ////////////////////////////////////
+// ///////////////////////// Crear compra y enviar  ///////////////////////////
+func realizarCompra(client orden.CompraServiceClient, input CompraInput) error {
+	var vehiculos []*orden.Vehicle
+	for _, v := range input.Vehiculos {
+		vehiculos = append(vehiculos, &v)
+	}
 
-	// Comprobar paso de argumento
+	compra := orden.Compra{
+		Vehiculos: vehiculos,
+		Cliente:   &input.Cliente,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	_, err := client.RealizarCompra(ctx, &compra)
+	return err
+}
+
+func main() {
+	////////////////////// Extraer JSON //////////////////////
+
+	// Comprueba que existan 2 argumentos
 	if len(os.Args) < 2 {
 		log.Fatalf("%s <archivo.json>", os.Args[0])
 	}
 
-	// Abrir JSON
 	file, err := os.Open(os.Args[1])
 	if err != nil {
 		log.Fatalf("Error al abrir el archivo: %v", err)
@@ -50,26 +67,28 @@ func main() {
 		log.Fatalf("Error al deserializar JSON: %v", err)
 	}
 
-	var vehiculos []*orden.Vehicle
-	for _, v := range input.Vehiculos {
-		vehiculos = append(vehiculos, &v)
+	var conn *grpc.ClientConn
+	var client orden.CompraServiceClient
+
+	for {
+		conn, client, err = conectarServer()
+		if err != nil {
+			log.Printf("No se pudo conectar: %v. Reintentando...", err)
+			time.Sleep(time.Second) // Espera antes de reintentar
+			continue
+		}
+
+		if err = realizarCompra(client, input); err == nil {
+			log.Printf("Compra realizada exitosamente.")
+			break
+		} else {
+			log.Printf("Error al realizar la compra: %v. Reintentando...", err)
+			conn.Close()            // Cerrar la conexión antes de reintentar
+			time.Sleep(time.Second) // Esperar antes de reintentar
+		}
 	}
 
-	//////////////////////////////////// Asignar los datos a la compra ////////////////////////////////////
-
-	compra := orden.Compra{
-		Vehiculos: vehiculos,
-		Cliente:   &input.Cliente,
+	if conn != nil {
+		defer conn.Close() // Cerrar la conexión al final
 	}
-
-	//////////////////////////////////// LLamada gRPC ////////////////////////////////////
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	response, err := client.RealizarCompra(ctx, &compra)
-	if err != nil {
-		log.Fatalf("Error al realizar la compra: %v", err)
-	}
-
-	log.Printf("Respuesta del servidor: %s", response.Message)
 }

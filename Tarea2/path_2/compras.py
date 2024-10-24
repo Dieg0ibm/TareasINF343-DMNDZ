@@ -88,7 +88,6 @@ class CompraService(orden_pb2_grpc.CompraServiceServicer):
         self.enviar_orden_a_rabbitmq(order_data)
         return orden_pb2.CompraResponse(message=mensaje_respuesta)
 
-
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     orden_pb2_grpc.add_CompraServiceServicer_to_server(CompraService(), server)

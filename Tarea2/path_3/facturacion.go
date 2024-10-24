@@ -15,10 +15,10 @@ import (
 // //////////////////////////////////////// Estructuras //////////////////////////////////////////
 
 type Vehicle struct {
-	Manufacturer string  `json:"manufacturer"`
-	Model        string  `json:"model"`
-	Year         int     `json:"year"`
-	Price        float64 `json:"price"`
+	Manufacturer string `json:"manufacturer"`
+	Model        string `json:"model"`
+	Year         int    `json:"year"`
+	Price        int    `json:"price"`
 }
 
 type Customer struct {

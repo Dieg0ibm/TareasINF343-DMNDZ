@@ -15,10 +15,10 @@ import (
 
 // //////////////////////////////////////// Estructuras //////////////////////////////////////////
 type Vehicle struct {
-	Manufacturer string  `json:"manufacturer"`
-	Model        string  `json:"model"`
-	Year         int     `json:"year"`
-	Price        float64 `json:"price"`
+	Manufacturer string `json:"manufacturer"`
+	Model        string `json:"model"`
+	Year         int    `json:"year"`
+	Price        int    `json:"price"`
 }
 
 type Order struct {
@@ -108,7 +108,7 @@ func main() {
 
 	go func() {
 		for d := range msgs {
-			log.Printf("Received a message: %s", d.Body)
+			//log.Printf("Received a message: %s", d.Body)
 
 			//  JSON a Order
 			var order Order
@@ -119,7 +119,7 @@ func main() {
 			}
 
 			for _, v := range order.Vehicles {
-				fmt.Printf("- %s %s (%d) - Precio: %.2f\n", v.Manufacturer, v.Model, v.Year, v.Price)
+				fmt.Printf("- %s %s (%d) - Precio: %d\n", v.Manufacturer, v.Model, v.Year, v.Price)
 
 				// Actualizar el stock del vehículo
 				err := ActualizarStock(ctx, coleccionAutos, v)
