@@ -73,7 +73,6 @@ func main() {
 	for {
 		conn, client, err = conectarServer()
 		if err != nil {
-			log.Printf("No se pudo conectar: %v. Reintentando...", err)
 			time.Sleep(time.Second) // Espera antes de reintentar
 			continue
 		}
@@ -82,7 +81,6 @@ func main() {
 			log.Printf("Compra realizada exitosamente.")
 			break
 		} else {
-			log.Printf("Error al realizar la compra: %v. Reintentando...", err)
 			conn.Close()            // Cerrar la conexión antes de reintentar
 			time.Sleep(time.Second) // Esperar antes de reintentar
 		}
