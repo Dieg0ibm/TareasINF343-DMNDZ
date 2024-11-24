@@ -7,8 +7,9 @@ Integrantes:
 
 Instrucciones de uso:
 
+En cada maquina virtual ir a la dirección TareasINF343-DMNDZ/Tarea2/
 
-EJECUTAR EN EL SIGUIENTE ORDEN Y DESDE LA CARPETA TareasINF343-DMNDZ/Tarea2/
+Ejecutar en el siguiente orden
 
 MV 3 (10.10.29.228) "Inventario y facturacion"
 
