@@ -11,7 +11,9 @@ Instrucciones de uso:
 EJECUTAR EN EL SIGUIENTE ORDEN Y DESDE LA CARPETA TareasINF343-DMNDZ/Tarea2/
 
 MV 3 (10.10.29.228) "Inventario y facturacion"
+
 go run path_3/inventario.go
+
 go run path_3/facturacion.go
 
 MV 2 (10.10.29.233) "Servicio compras"
