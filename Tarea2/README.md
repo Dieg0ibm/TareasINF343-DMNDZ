@@ -7,13 +7,20 @@ Integrantes:
 
 Instrucciones de uso:
 
-- IP de la maquina virtual utilizada: 10.10.29.228
-- Ir a la carpeta TareasINF343-DMNDZ/Tarea2
-- Ejecutar cada uno de los siguientes comandos en terminales distintas (desde la shell utilice el comando 'screen' para tener acceso a cuatro terminales)
-- **Ejecutar el servicio de gestión de inventario:** go run path_3/inventario.go
-- **Ejecutar el servicio de facturación:** go run path_3/facturacion.go
-- **Ejecutar el servicio de compras:** python3 path_2/compras.py 
-- **Ejecutar el cliente leyendo el archivo vehicles.json:** ./path vehicles.json
+
+EJECUTAR EN EL SIGUIENTE ORDEN Y DESDE LA CARPETA TareasINF343-DMNDZ/Tarea2/
+
+MV 3 (10.10.29.228) "Inventario y facturacion"
+go run path_3/inventario.go
+go run path_3/facturacion.go
+
+MV 2 (10.10.29.233) "Servicio compras"
+python3 path_2/compras.py
+
+MV 1 (10.10.29.227) "Cliente"
+./Tarea2 vehicles.json
+
+Puedes revisar la base de datos en la MV 2 con mongosh, ocupamos la db "local"
 
 
 
