@@ -1,3 +1,5 @@
+La tarea se encuentra en la maquina virtual 10.10.29.227, en el directorio TareasINF343-DMNDZ/Tarea3
+
 # Preguntas
 
 ### ¿Qué ocurre cuando n= 1 en ambos sistemas?
