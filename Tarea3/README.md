@@ -30,6 +30,6 @@ R:
 
 # Diagramas de flujo
 ## Sistema A
-![Imagen 1: Sistema A](Tarea3/sistema_A1.drawio.png)
+![Imagen 1: Sistema A](https://github.com/Dieg0ibm/TareasINF343-DMNDZ/blob/main/Tarea3/sistema_A1.drawio.png)
 ## Sistema B
-![Imagen 2: Sistema B](Tarea3/sistema_B1.drawio.png)
+![Imagen 2: Sistema B](https://github.com/Dieg0ibm/TareasINF343-DMNDZ/blob/main/Tarea3/sistema_B1.drawio.png)
