@@ -7,10 +7,6 @@ Integrantes:
 
 La tarea se encuentra en la maquina virtual 10.10.29.227, en el directorio TareasINF343-DMNDZ/Tarea3 , se pueden ejecutar los comandos de la tarea sin problema
 
-Exclusión total en el sistema A, no permite acceso paralelo, incluso si las goroutines trabajan en paralelos diferentes.
-
-Exclusión mutua a nivel de paralelo en el sistema B (si se implementa con paraleloMutex[i]), permitiendo acceso concurrente a paralelos distintos.
-
 
 # Preguntas
 
