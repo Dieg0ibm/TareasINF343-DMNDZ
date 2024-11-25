@@ -30,4 +30,6 @@ R:
 
 # Diagramas de flujo
 ## Sistema A
+![Imagen 1: Sistema A](Tarea3/sistema_A1.drawio.png)
 ## Sistema B
+![Imagen 2: Sistema B](Tarea3/sistema_B1.drawio.png)
